@@ -1,0 +1,216 @@
+{
+  "model_version": "2.0.0",
+  "trained_at": "2026-11-09T14:28:47+00:00",
+  "seed": 7,
+  "sklearn_version": "1.8.0",
+  "n_samples": 1200,
+  "n_features": 16,
+  "classes": [
+    "low",
+    "moderate",
+    "high"
+  ],
+  "class_distribution": {
+    "low": 838,
+    "moderate": 260,
+    "high": 102
+  },
+  "label_definition": {
+    "moderate_cut": 18.0,
+    "high_cut": 28.0,
+    "note": "Labels are derived from a weighted deviation score over published reference bands. The supervised target is therefore deterministic, so in-distribution accuracy is expected to be high; the grouped holdout below is the honest generalisation figure."
+  },
+  "stratified_5fold": {
+    "accuracy": 0.8992,
+    "macro_f1": 0.8269,
+    "per_class": {
+      "low": {
+        "precision": 0.9419,
+        "recall": 0.9666,
+        "f1": 0.9541,
+        "support": 838
+      },
+      "moderate": {
+        "precision": 0.7623,
+        "recall": 0.7769,
+        "f1": 0.7695,
+        "support": 260
+      },
+      "high": {
+        "precision": 0.8933,
+        "recall": 0.6569,
+        "f1": 0.7571,
+        "support": 102
+      }
+    },
+    "confusion_matrix": {
+      "labels": [
+        "low",
+        "moderate",
+        "high"
+      ],
+      "matrix": [
+        [
+          810,
+          28,
+          0
+        ],
+        [
+          50,
+          202,
+          8
+        ],
+        [
+          0,
+          35,
+          67
+        ]
+      ]
+    }
+  },
+  "leave_one_archetype_out": {
+    "accuracy": 0.8408,
+    "macro_f1": 0.6866,
+    "per_archetype": {
+      "behavioural": {
+        "accuracy": 0.8182,
+        "n": 132
+      },
+      "deconditioning": {
+        "accuracy": 0.8093,
+        "n": 236
+      },
+      "immune": {
+        "accuracy": 0.8073,
+        "n": 192
+      },
+      "musculoskeletal": {
+        "accuracy": 0.9435,
+        "n": 124
+      },
+      "resilient": {
+        "accuracy": 0.9844,
+        "n": 320
+      },
+      "sleep_debt": {
+        "accuracy": 0.6276,
+        "n": 196
+      }
+    },
+    "note": "Each crew archetype is scored by a model that never saw that archetype during training. This is the headline generalisation figure."
+  },
+  "feature_importance": [
+    {
+      "feature": "sleep_hours",
+      "label": "Sleep duration",
+      "importance": 0.1724
+    },
+    {
+      "feature": "stress_self",
+      "label": "Self-reported stress",
+      "importance": 0.1541
+    },
+    {
+      "feature": "hrv_rmssd",
+      "label": "Heart-rate variability",
+      "importance": 0.1501
+    },
+    {
+      "feature": "sleep_efficiency",
+      "label": "Sleep efficiency",
+      "importance": 0.077
+    },
+    {
+      "feature": "hr_mean",
+      "label": "Mean heart rate",
+      "importance": 0.0675
+    },
+    {
+      "feature": "spo2_min",
+      "label": "Minimum SpO\u2082",
+      "importance": 0.0547
+    },
+    {
+      "feature": "spo2_mean",
+      "label": "Mean SpO\u2082",
+      "importance": 0.0544
+    },
+    {
+      "feature": "radiation_7d",
+      "label": "Radiation dose (7 d)",
+      "importance": 0.0515
+    },
+    {
+      "feature": "hr_max",
+      "label": "Peak heart rate",
+      "importance": 0.0478
+    },
+    {
+      "feature": "temperature",
+      "label": "Core temperature",
+      "importance": 0.0355
+    },
+    {
+      "feature": "bone_density_pct",
+      "label": "Bone density vs baseline",
+      "importance": 0.0295
+    },
+    {
+      "feature": "bp_systolic",
+      "label": "Systolic BP",
+      "importance": 0.0262
+    },
+    {
+      "feature": "mission_day",
+      "label": "Mission day",
+      "importance": 0.0217
+    },
+    {
+      "feature": "bp_diastolic",
+      "label": "Diastolic BP",
+      "importance": 0.0193
+    },
+    {
+      "feature": "fluid_intake",
+      "label": "Fluid intake",
+      "importance": 0.0192
+    },
+    {
+      "feature": "eva_hours_7d",
+      "label": "EVA hours (7 d)",
+      "importance": 0.0192
+    }
+  ],
+  "feature_order": [
+    "hr_mean",
+    "hr_max",
+    "hrv_rmssd",
+    "spo2_mean",
+    "spo2_min",
+    "bp_systolic",
+    "bp_diastolic",
+    "temperature",
+    "sleep_hours",
+    "sleep_efficiency",
+    "stress_self",
+    "bone_density_pct",
+    "radiation_7d",
+    "eva_hours_7d",
+    "fluid_intake",
+    "mission_day"
+  ],
+  "training_data": {
+    "kind": "synthetic",
+    "generator": "astrohealth.synthetic.generate_series",
+    "profiles": 300,
+    "note": "No astronaut physiological data is redistributed in this repository."
+  },
+  "limitations": [
+    "Trained and validated on synthetic signals; not clinically validated.",
+    "Decision support only \u2014 it does not diagnose and must not replace a flight surgeon.",
+    "Thresholds are operational bands, not personalised clinical limits.",
+    "Radiation bands are mission-profile specific and simplified.",
+    "Labels are derived from a rule-defined strain index, so the supervised score measures agreement with that definition rather than clinical ground truth.",
+    "Synthetic data cannot represent medication, genetics, prior injury or individual countermeasure adherence."
+  ]
+}

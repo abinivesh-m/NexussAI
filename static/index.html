@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AstroHealth — Crew Health Monitoring</title>
+  <meta name="description" content="Crew-facing physiological monitoring and self-assessment for long-duration spaceflight." />
+  <meta name="theme-color" content="#070b14" />
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="16" cy="16" r="6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <ellipse cx="16" cy="16" rx="14" ry="5.5" fill="none" stroke="currentColor" stroke-width="1.2"
+                 transform="rotate(-28 16 16)" opacity=".65"/>
+        <circle cx="16" cy="16" r="2.2" fill="currentColor"/>
+      </svg>
+      <div class="brand-text">
+        <span class="brand-name">AstroHealth</span>
+        <span class="brand-sub">Crew physiological monitoring</span>
+      </div>
+    </div>
+
+    <div class="topbar-meta">
+      <div class="mission-clock">
+        <span class="meta-label">Mission day</span>
+        <span class="meta-value" id="mission-day">—</span>
+      </div>
+      <div class="mission-clock">
+        <span class="meta-label">Profile</span>
+        <span class="meta-value meta-value-sm" id="mission-profile">—</span>
+      </div>
+      <button class="alert-pill" id="alert-pill" type="button" title="Jump to active alerts">
+        <span class="dot"></span>
+        <span id="alert-pill-text">0 alerts</span>
+      </button>
+      <div class="live" id="live-indicator">
+        <span class="live-dot"></span>
+        <span>live</span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="tabs" aria-label="Sections">
+    <a class="tab" href="#overview" data-tab="overview">Overview</a>
+    <a class="tab" href="#crew" data-tab="crew">Crew</a>
+    <a class="tab" href="#checkin" data-tab="checkin">Self check-in</a>
+    <a class="tab" href="#model" data-tab="model">Model &amp; data</a>
+    <div class="tab-indicator" id="tab-indicator"></div>
+  </nav>
+</header>
+
+<main id="main" class="page">
+
+  <!-- ================= OVERVIEW ================= -->
+  <section class="view" id="view-overview" aria-labelledby="overview-title">
+    <div class="view-head">
+      <div>
+        <h1 id="overview-title">Mission overview</h1>
+        <p class="lede">Continuous physiological status across the crew. Every figure below is computed from the seven-day window ending today.</p>
+      </div>
+      <button class="btn btn-ghost" id="refresh-btn" type="button">
+        <span class="btn-icon" aria-hidden="true">↻</span> Refresh
+      </button>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi">
+        <span class="kpi-label">Crew monitored</span>
+        <span class="kpi-value" id="kpi-crew">—</span>
+        <span class="kpi-foot" id="kpi-crew-foot">6 crew members</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-label">Active alerts</span>
+        <span class="kpi-value" id="kpi-alerts">—</span>
+        <span class="kpi-foot" id="kpi-alerts-foot">—</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-label">Mean composite risk</span>
+        <span class="kpi-value" id="kpi-risk">—</span>
+        <span class="kpi-foot">0–100 weighted strain</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-label">Highest-risk crew member</span>
+        <span class="kpi-value kpi-value-sm" id="kpi-top">—</span>
+        <span class="kpi-foot" id="kpi-top-foot">—</span>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <article class="panel">
+        <header class="panel-head">
+          <h2>Mission trends</h2>
+          <span class="panel-hint">Crew daily mean</span>
+        </header>
+        <div class="chart-wrap"><canvas id="mission-chart"></canvas></div>
+        <div class="legend" id="mission-legend"></div>
+      </article>
+
+      <article class="panel" id="alerts-panel">
+        <header class="panel-head">
+          <h2>Active alerts</h2>
+          <span class="panel-hint" id="alerts-hint">—</span>
+        </header>
+        <div class="alert-feed" id="alert-feed">
+          <div class="skeleton-list"></div>
+        </div>
+      </article>
+    </div>
+
+    <article class="panel">
+      <header class="panel-head">
+        <h2>Crew risk board</h2>
+        <span class="panel-hint">Sorted by composite risk</span>
+      </header>
+      <div class="risk-board" id="risk-board"><div class="skeleton-list"></div></div>
+    </article>
+  </section>
+
+  <!-- ================= CREW ================= -->
+  <section class="view" id="view-crew" aria-labelledby="crew-title" hidden>
+    <div class="view-head">
+      <div>
+        <h1 id="crew-title">Crew</h1>
+        <p class="lede">Select a crew member for the full assessment: vitals history, model output, contributing signals and next actions.</p>
+      </div>
+    </div>
+    <div class="crew-grid" id="crew-grid"><div class="skeleton-list"></div></div>
+    <div id="crew-detail" class="crew-detail" hidden></div>
+  </section>
+
+  <!-- ================= CHECK-IN ================= -->
+  <section class="view" id="view-checkin" aria-labelledby="checkin-title" hidden>
+    <div class="view-head">
+      <div>
+        <h1 id="checkin-title">Self check-in</h1>
+        <p class="lede">The challenge brief asks for astronauts to be able to evaluate their own health. This is that loop: what you report is fused with what the sensors measure, and disagreement between the two is surfaced rather than averaged away.</p>
+      </div>
+    </div>
+
+    <div class="grid-sidebar">
+      <form class="panel checkin-form" id="checkin-form">
+        <header class="panel-head">
+          <h2>How are you right now?</h2>
+        </header>
+
+        <fieldset class="field">
+          <legend>Crew member</legend>
+          <div class="chip-row" id="checkin-crew"></div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>Symptoms <span class="legend-hint">0 none · 1 mild · 2 moderate · 3 severe</span></legend>
+          <div class="symptom-grid" id="symptom-grid"></div>
+        </fieldset>
+
+        <div class="field-row">
+          <fieldset class="field">
+            <legend>Sleep quality</legend>
+            <div class="seg" data-field="sleep_quality"></div>
+          </fieldset>
+          <fieldset class="field">
+            <legend>Mood</legend>
+            <div class="seg" data-field="mood"></div>
+          </fieldset>
+          <fieldset class="field">
+            <legend>Workload</legend>
+            <div class="seg" data-field="workload"></div>
+          </fieldset>
+        </div>
+
+        <fieldset class="field">
+          <legend>Fluid intake today <span class="legend-hint" id="hydration-out">2.4 L</span></legend>
+          <input type="range" id="hydration" min="0.5" max="4.5" step="0.1" value="2.4" />
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>Anything else the sensors cannot see</legend>
+          <textarea id="notes" rows="3" maxlength="500" placeholder="Optional. Plain language is fine."></textarea>
+        </fieldset>
+
+        <div class="form-actions">
+          <button class="btn btn-primary" type="submit" id="checkin-submit">Submit check-in</button>
+          <span class="form-status" id="checkin-status" role="status"></span>
+        </div>
+      </form>
+
+      <aside class="panel checkin-result" id="checkin-result" aria-live="polite">
+        <header class="panel-head">
+          <h2>Assessment</h2>
+        </header>
+        <div class="empty-state">
+          <p>Submit a check-in to see your fused assessment, contributing systems and EVA readiness.</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ================= MODEL ================= -->
+  <section class="view" id="view-model" aria-labelledby="model-title" hidden>
+    <div class="view-head">
+      <div>
+        <h1 id="model-title">Model &amp; data</h1>
+        <p class="lede">Everything the system concludes rests on the model below. These numbers are computed at build time by <code>scripts/train_model.py</code> — none of them are written by hand.</p>
+      </div>
+    </div>
+
+    <div class="notice" id="data-notice">
+      <strong>Data statement.</strong>
+      <span id="data-statement">Loading…</span>
+    </div>
+
+    <div class="kpi-row" id="metric-tiles"></div>
+
+    <div class="grid-2">
+      <article class="panel">
+        <header class="panel-head">
+          <h2>What the model relies on</h2>
+          <span class="panel-hint">Gini importance</span>
+        </header>
+        <div class="chart-wrap chart-tall"><canvas id="importance-chart"></canvas></div>
+      </article>
+
+      <article class="panel">
+        <header class="panel-head">
+          <h2>Where it fails</h2>
+          <span class="panel-hint">Reported, not hidden</span>
+        </header>
+        <ul class="list-tight" id="limitations"></ul>
+      </article>
+    </div>
+
+    <div class="grid-2">
+      <article class="panel">
+        <header class="panel-head"><h2>Confusion matrix</h2><span class="panel-hint">5-fold out-of-fold</span></header>
+        <div id="confusion" class="confusion"></div>
+      </article>
+      <article class="panel">
+        <header class="panel-head"><h2>Generalisation by crew archetype</h2><span class="panel-hint">Leave-one-out</span></header>
+        <div id="logo-table" class="mini-table"></div>
+      </article>
+    </div>
+
+    <div class="grid-2">
+      <article class="panel">
+        <header class="panel-head"><h2>Operational reference bands</h2><span class="panel-hint">Decision thresholds</span></header>
+        <div class="table-scroll"><table class="data-table" id="bands-table"></table></div>
+      </article>
+      <article class="panel">
+        <header class="panel-head"><h2>Sources</h2><span class="panel-hint">Provenance</span></header>
+        <ul class="source-list" id="sources"></ul>
+      </article>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span>AstroHealth · decision support only, not a diagnostic device</span>
+    <span class="footer-links">
+      <a href="/docs" target="_blank" rel="noopener">API docs</a>
+      <a href="/api/model" target="_blank" rel="noopener">Model card JSON</a>
+    </span>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="/static/app.js" defer></script>
+</body>
+</html>
