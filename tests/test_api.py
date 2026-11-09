@@ -92,6 +92,22 @@ def test_checkin_rejects_unknown_symptoms(client):
     assert response.status_code == 422
 
 
+def test_poor_sleep_quality_scores_worse_than_good_sleep(client):
+    """Sleep quality runs 1 (worst) to 5 (best). Inverting it was a real bug:
+    excellent sleep added penalty and terrible sleep added nothing."""
+    good = client.post("/api/crew/astro-005/checkin", json={"sleep_quality": 5}).json()["assessment"]
+    poor = client.post("/api/crew/astro-005/checkin", json={"sleep_quality": 1}).json()["assessment"]
+    assert poor["risk"]["components"]["subjective"] > good["risk"]["components"]["subjective"]
+    assert poor["risk"]["overall"] >= good["risk"]["overall"]
+
+
+def test_risk_level_never_contradicts_the_score(client):
+    for member in client.get("/api/crew").json()["crew"]:
+        risk = member["risk"]
+        expected = "high" if risk["overall"] >= 55 else "moderate" if risk["overall"] >= 25 else "low"
+        assert risk["level"] == expected, f'{member["name"]}: {risk["overall"]} labelled {risk["level"]}'
+
+
 def test_checkin_rejects_out_of_range_severity(client):
     response = client.post("/api/crew/astro-001/checkin", json={"symptoms": {"headache": 9}})
     assert response.status_code == 422

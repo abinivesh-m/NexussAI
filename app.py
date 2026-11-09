@@ -111,7 +111,7 @@ class Store:
             alerts=alerts,
             symptom_load=symptom["symptom_load"],
             symptom_systems=symptom["systems"],
-            sleep_quality=(6 - checkin["sleep_quality"]) if checkin else None,
+            sleep_quality=checkin["sleep_quality"] if checkin else None,
             workload=checkin["workload"] if checkin else None,
             has_self_report=checkin is not None,
         )
