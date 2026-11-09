@@ -220,8 +220,9 @@ CITATIONS: list[dict[str, str]] = [
     {
         "name": "PhysioNet",
         "url": "https://physionet.org/",
-        "used_for": "Open physiological signal datasets used to shape realistic "
-        "waveform statistics for heart rate and HRV.",
+        "used_for": "Open physiological signal corpora consulted for realistic "
+        "day-to-day dispersion in heart rate and HRV. No PhysioNet records are "
+        "redistributed or used for training.",
     },
 ]
 

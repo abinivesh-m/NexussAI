@@ -731,7 +731,8 @@
           ? `<div class="notice" style="margin:14px 0"><strong>Disagreement.</strong><span>${esc(r.disagreement.note)}</span></div>`
           : ""
       }
-      <div class="mini-table" style="margin-bottom:14px">
+      <div class="mini-label">Contributing systems</div>
+      <div class="mini-table" style="margin-bottom:16px">
         ${r.drivers
           .map((d) => `<div class="mini-row"><span class="mini-key">${esc(d.system)}</span><span class="mini-val">${fmt(d.weight)}</span></div>`)
           .join("")}
@@ -802,7 +803,7 @@
     const cm = m.stratified_5fold.confusion_matrix;
     const labels = cm.labels;
     $("#confusion").innerHTML =
-      `<div class="confusion-cell confusion-head"></div>` +
+      `<div class="confusion-cell confusion-corner">·</div>` +
       labels.map((l) => `<div class="confusion-cell confusion-head">${esc(l)}</div>`).join("") +
       cm.matrix
         .map(
@@ -812,7 +813,8 @@
               .map((v, j) => `<div class="confusion-cell ${i === j ? "confusion-diag" : "confusion-off"}">${v}</div>`)
               .join("")
         )
-        .join("");
+        .join("") +
+      `<p class="confusion-foot">Rows are the true class, columns the predicted class.</p>`;
 
     $("#logo-table").innerHTML = Object.entries(logo.per_archetype)
       .sort((a, b) => b[1].accuracy - a[1].accuracy)

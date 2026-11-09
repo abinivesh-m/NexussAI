@@ -22,6 +22,18 @@ SEVERITY_WEIGHT = {"critical": 22.0, "warning": 9.0, "info": 3.0}
 #: Systems that block EVA clearance outright when active at warning or above.
 EVA_BLOCKING_SYSTEMS = {"cardio", "resp", "neuro", "ocular"}
 
+#: Composite-score band edges. These are operating thresholds on a 0-100 index,
+#: calibrated so that the nominal synthetic cohort sits in the low band and a
+#: genuine deterioration reaches the high band. The badge and the number are
+#: always derived from the same value, so a crew member can never read
+#: "5.9 / moderate".
+MODERATE_BAND = 25.0
+HIGH_BAND = 55.0
+
+#: A critical finding is high strain by definition; floor the score into the
+#: high band so a critical alert can never be sorted below a quieter crew member.
+CRITICAL_FLOOR = 68.0
+
 
 def assess(
     features: dict[str, float],
@@ -63,11 +75,15 @@ def assess(
     # critical alert could sit under a moderate score and the board would sort
     # the sickest crew member second.
     if any(a["severity"] == "critical" for a in alerts):
-        overall = max(overall, 62.0)
+        overall = max(overall, CRITICAL_FLOOR)
 
-    if overall >= 65 or any(a["severity"] == "critical" for a in alerts):
+    # The level is a band on the score, nothing else. Alert severity already
+    # reaches the score through the burden component, so deriving the level from
+    # the alerts as well would double-count and let a single mild warning label
+    # a 5.9 as "moderate".
+    if overall >= HIGH_BAND:
         level = "high"
-    elif overall >= 35 or any(a["severity"] == "warning" for a in alerts):
+    elif overall >= MODERATE_BAND:
         level = "moderate"
     else:
         level = "low"
